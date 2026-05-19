@@ -15,7 +15,13 @@
     "KEY_MODE": 0
   },
   "resources": {
-    "media": []
+    "media": [
+      {
+        "type": "font",
+        "name": "FONT_SCP_12",
+        "file": "fonts/SourceCodePro-Regular.ttf"
+      }
+    ]
   },
   "capabilities": [
     "configurable"

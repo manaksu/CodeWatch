@@ -217,7 +217,7 @@ static void window_load(Window *window) {
   Layer *root = window_get_root_layer(window);
   GRect  bounds = layer_get_bounds(root);
   /* Source Code Pro for code lines only */
-  s_font_code = fonts_get_system_font(FONT_KEY_GOTHIC_14);
+  s_font_code = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SCP_12));
   s_canvas = layer_create(bounds);
   layer_set_update_proc(s_canvas, canvas_draw);
   layer_add_child(root, s_canvas);
@@ -227,6 +227,7 @@ static void window_load(Window *window) {
 
 static void window_unload(Window *window) {
   layer_destroy(s_canvas);
+  fonts_unload_custom_font(s_font_code);
 }
 
 static void init(void) {
