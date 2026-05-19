@@ -250,8 +250,8 @@ static void inbox_received(DictionaryIterator *iter, void *ctx) {
 static void window_load(Window *window) {
   Layer *root = window_get_root_layer(window);
   GRect  bounds = layer_get_bounds(root);
-  s_font_code = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_JB_12));
-  s_font_time = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_JB_14));
+  s_font_code = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SCP_12));
+  s_font_time = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SCP_14));
   s_canvas = layer_create(bounds);
   layer_set_update_proc(s_canvas, canvas_draw);
   layer_add_child(root, s_canvas);
