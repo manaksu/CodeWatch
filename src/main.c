@@ -8,13 +8,17 @@
  */
 
 #define KEY_MODE   0
+#define KEY_STYLE  1
 #define MODE_DARK  0
 #define MODE_LIGHT 1
+#define STYLE_TERMINAL 0
+#define STYLE_ASCII    1
 
-#define LH    13   /* line height */
+#define LH    12   /* line height */
 #define LM     4   /* left margin (no gutter — full width) */
 
 static int s_mode = MODE_DARK;
+static int s_style = STYLE_TERMINAL;
 static Window *s_window;
 static Layer  *s_canvas;
 static GFont   s_font_code;
@@ -69,7 +73,7 @@ static void canvas_draw(Layer *layer, GContext *ctx) {
 
   /* thin gutter line */
   graphics_context_set_stroke_color(ctx, cl());
-  graphics_draw_line(ctx, GPoint(17,0), GPoint(17,148));
+  graphics_draw_line(ctx, GPoint(17,0), GPoint(17,135));
 
   char h_str[4], m_str[4];
   int h12 = s_hour%12; if(!h12) h12=12;
@@ -115,24 +119,74 @@ static void canvas_draw(Layer *layer, GContext *ctx) {
   /* 11:    "p":"AM" } */
   tok(ctx,"    \"p\"",cs()); tok(ctx,":",co()); tok(ctx,per,cs()); tok(ctx," }",co());
 
-  /* ── result bar ── */
-  int result_y = 150;
-  graphics_context_set_fill_color(ctx,
-    s_mode==MODE_DARK ? GColorOxfordBlue : GColorLightGray);
-  graphics_fill_rect(ctx, GRect(0, result_y, 144, 18), 0, GCornerNone);
+  /* ── result display ── */
+  int result_y = 136;
+  GColor ink = s_mode==MODE_DARK ? GColorWhite : GColorBlack;
 
-  /* >> prompt in green */
-  graphics_context_set_text_color(ctx, cn());
-  graphics_draw_text(ctx, ">>", s_font_code,
-    GRect(2, result_y+2, 18, LH),
-    GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
+  if (s_style == STYLE_ASCII) {
+    /* ASCII box style */
+    /* top border: ┌──...──┐ */
+    graphics_context_set_text_color(ctx, co());
+    graphics_draw_text(ctx,
+      "âââââââââââââââââââââââââ",
+      s_font_code, GRect(0, result_y, 144, LH),
+      GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
 
-  /* result value in white/black bold */
-  graphics_context_set_text_color(ctx,
-    s_mode==MODE_DARK ? GColorWhite : GColorBlack);
-  graphics_draw_text(ctx, s_result_buf, s_font_code,
-    GRect(22, result_y+2, 120, LH),
-    GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
+    /* middle: │ >> result │ */
+    graphics_context_set_text_color(ctx, co());
+    graphics_draw_text(ctx, "â", s_font_code,
+      GRect(0, result_y+LH, 8, LH),
+      GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
+    graphics_draw_text(ctx, "â", s_font_code,
+      GRect(136, result_y+LH, 8, LH),
+      GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
+
+    /* >> prompt */
+    graphics_context_set_text_color(ctx, cn());
+    graphics_draw_text(ctx, ">>", s_font_code,
+      GRect(8, result_y+LH, 16, LH),
+      GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
+
+    /* result text */
+    graphics_context_set_text_color(ctx, ink);
+    graphics_draw_text(ctx, s_result_buf, s_font_code,
+      GRect(24, result_y+LH, 110, LH),
+      GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
+
+    /* bottom border: └──...──┘ */
+    graphics_context_set_text_color(ctx, co());
+    graphics_draw_text(ctx,
+      "âââââââââââââââââââââââââ",
+      s_font_code, GRect(0, result_y+LH*2, 144, LH),
+      GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
+
+  } else {
+    /* Terminal style */
+    graphics_context_set_fill_color(ctx,
+      s_mode==MODE_DARK ? GColorDarkGray : GColorLightGray);
+    graphics_fill_rect(ctx, GRect(0, result_y, 144, 1), 0, GCornerNone);
+    graphics_context_set_fill_color(ctx,
+      s_mode==MODE_DARK ? GColorBlack : GColorWhite);
+    graphics_fill_rect(ctx, GRect(0, result_y+1, 144, 18), 0, GCornerNone);
+    graphics_context_set_fill_color(ctx, cn());
+    graphics_fill_rect(ctx, GRect(2, result_y+3, 6, 11), 0, GCornerNone);
+    graphics_context_set_text_color(ctx, cn());
+    graphics_draw_text(ctx, "$", s_font_code,
+      GRect(10, result_y+2, 10, LH),
+      GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
+    graphics_context_set_text_color(ctx, ink);
+    graphics_draw_text(ctx, s_result_buf, s_font_code,
+      GRect(20, result_y+2, 122, LH),
+      GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
+    GSize rw = graphics_text_layout_get_content_size(
+      s_result_buf, s_font_code, GRect(0,0,200,LH),
+      GTextOverflowModeWordWrap, GTextAlignmentLeft);
+    int cur_x = 20 + rw.w + 1;
+    if (cur_x < 140) {
+      graphics_context_set_fill_color(ctx, ink);
+      graphics_fill_rect(ctx, GRect(cur_x, result_y+3, 5, 10), 0, GCornerNone);
+    }
+  }
 }
 
 static void update_time(struct tm *t) {
@@ -162,6 +216,12 @@ static void inbox_received(DictionaryIterator *iter, void *ctx) {
     persist_write_int(KEY_MODE, s_mode);
     layer_mark_dirty(s_canvas);
   }
+  Tuple *st = dict_find(iter, KEY_STYLE);
+  if (st) {
+    s_style=(int)st->value->int32;
+    persist_write_int(KEY_STYLE, s_style);
+    layer_mark_dirty(s_canvas);
+  }
 }
 
 static void window_load(Window *window) {
@@ -182,7 +242,8 @@ static void window_unload(Window *window) {
 }
 
 static void init(void) {
-  s_mode = persist_exists(KEY_MODE) ? persist_read_int(KEY_MODE) : MODE_DARK;
+  s_mode  = persist_exists(KEY_MODE)  ? persist_read_int(KEY_MODE)  : MODE_DARK;
+  s_style = persist_exists(KEY_STYLE) ? persist_read_int(KEY_STYLE) : STYLE_TERMINAL;
   s_window = window_create();
   window_set_background_color(s_window, GColorBlack);
   window_set_window_handlers(s_window, (WindowHandlers){

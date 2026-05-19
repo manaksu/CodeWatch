@@ -12,7 +12,8 @@
     "watchface": true
   },
   "appKeys": {
-    "KEY_MODE": 0
+    "KEY_MODE": 0,
+    "KEY_STYLE": 1
   },
   "resources": {
     "media": [

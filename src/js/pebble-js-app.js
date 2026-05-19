@@ -3,11 +3,12 @@
  *   Key 0: KEY_MODE  0=Dark  1=Light
  */
 function loadCfg() {
-  return { mode: +(localStorage.getItem('mode') || '0') };
+  return { mode: +(localStorage.getItem('mode') || '0'), style: +(localStorage.getItem('style') || '0') };
 }
-function saveCfg(c) { localStorage.setItem('mode', c.mode); }
+function saveCfg(c) { localStorage.setItem('mode', c.mode);
+  localStorage.setItem('style', c.style); }
 function sendMsg(c) {
-  Pebble.sendAppMessage({ 0: c.mode },
+  Pebble.sendAppMessage({ 0: c.mode, 1: c.style },
     function(){ console.log('ok'); },
     function(e){ console.log('fail',e); }
   );
@@ -42,7 +43,7 @@ function buildConfig(c) {
     +'document.getElementById("s").onclick=function(){'
     +'function g(n){var e=document.querySelector("input[name="+n+"]:checked");return e?+e.value:0;}'
     +'location.href="pebblejs://close#"+encodeURIComponent(JSON.stringify({'
-    +'mode:g("mode")}));'
+    +'mode:g("mode"),style:g("style")}));'
     +'};<\/script></body></html>';
   return 'data:text/html,'+encodeURIComponent(h);
 }
