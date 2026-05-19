@@ -5,18 +5,32 @@
   "companyName": "manaksu",
   "versionLabel": "1.0",
   "sdkVersion": "3",
-  "targetPlatforms": ["basalt"],
-  "watchapp": { "watchface": true },
+  "targetPlatforms": [
+    "basalt"
+  ],
+  "watchapp": {
+    "watchface": true
+  },
   "appKeys": {
     "KEY_MODE": 0
   },
   "resources": {
     "media": [
-      { "type": "font", "name": "FONT_JB_12", "file": "fonts/JetBrainsMono-Regular.ttf" },
-      { "type": "font", "name": "FONT_JB_16", "file": "fonts/JetBrainsMono-Bold.ttf" }
+      {
+        "type": "font",
+        "name": "FONT_JB_12",
+        "file": "fonts/JetBrainsMono-Regular.ttf"
+      },
+      {
+        "type": "font",
+        "name": "FONT_JB_14",
+        "file": "fonts/JetBrainsMono-Regular.ttf"
+      }
     ]
   },
-  "capabilities": ["configurable"],
+  "capabilities": [
+    "configurable"
+  ],
   "projectType": "native",
   "messageKeys": {}
 }
