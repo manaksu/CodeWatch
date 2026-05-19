@@ -2,21 +2,8 @@
 
 /*
  * Code Watch — VS Code theme
+ * Uses system fonts: GOTHIC_14 for code, GOTHIC_18_BOLD for result
  *   Key 0: KEY_MODE  0=Dark  1=Light
- *
- * Layout (12px LH, 11 lines + result + date = 166px):
- *  1: # Monday
- *  2: def get_time():
- *  3:   if hour < 12:
- *  4:     period = "AM"
- *  5:   else:
- *  6:     period = "PM"
- *  7:   hour = 10
- *  8:   mins = 33
- *  9:   return {
- * 10:     "h": 10, "m": 33
- * 11:     "p": "AM"  }
- *     ── 10:33 AM · Mon 17 ──
  */
 
 #define KEY_MODE   0
@@ -26,13 +13,11 @@
 static int s_mode = MODE_DARK;
 static Window *s_window;
 static Layer  *s_canvas;
-static GFont   s_font_code;
-static GFont   s_font_result;
 
 static int  s_hour, s_min;
 static bool s_is_am;
 static char s_day_buf[12];
-static char s_result_buf[24]; /* "10:33 AM · Mon 17" */
+static char s_result_buf[24];
 
 /* ── colours ── */
 static GColor ck(void){ return s_mode==MODE_DARK?GColorMagenta        :GColorPurple;       }
@@ -46,9 +31,12 @@ static GColor cl(void){ return s_mode==MODE_DARK?GColorDarkGray        :GColorLi
 
 /* ── draw state ── */
 static int s_cx, s_cy, s_lno;
-#define LH     12
+#define LH     13
 #define GUTTER 20
-#define LM     24
+#define LM     23
+
+static GFont s_font_code;
+static GFont s_font_result;
 
 static void draw_lno(GContext *ctx) {
   char buf[4];
@@ -112,11 +100,11 @@ static void canvas_draw(Layer *layer, GContext *ctx) {
 
   /* 3:   if hour < 12: */
   tok(ctx,"  if ",ck()); tok(ctx,"hour",cv());
-  tok(ctx," < ",co()); tok(ctx,"12",cn()); tok(ctx,":",co());
+  tok(ctx,"<",co()); tok(ctx,"12",cn()); tok(ctx,":",co());
   nl(ctx);
 
   /* 4:     period = "AM" */
-  tok(ctx,"    period",cv()); tok(ctx,"=",co()); tok(ctx,per,cs());
+  tok(ctx,"   period",cv()); tok(ctx,"=",co()); tok(ctx,per,cs());
   nl(ctx);
 
   /* 5:   else: */
@@ -124,7 +112,7 @@ static void canvas_draw(Layer *layer, GContext *ctx) {
   nl(ctx);
 
   /* 6:     period = "PM" */
-  tok(ctx,"    period",cv()); tok(ctx,"=",co()); tok(ctx,peri,cs());
+  tok(ctx,"   period",cv()); tok(ctx,"=",co()); tok(ctx,peri,cs());
   nl(ctx);
 
   /* 7:   hour = 10 */
@@ -139,32 +127,33 @@ static void canvas_draw(Layer *layer, GContext *ctx) {
   tok(ctx,"  return ",ck()); tok(ctx,"{",co());
   nl(ctx);
 
-  /* 10:     "h":10, "m":33 */
-  tok(ctx,"    \"h\"",cs()); tok(ctx,":",co()); tok(ctx,h_str,cn());
-  tok(ctx,", \"m\"",cs()); tok(ctx,":",co()); tok(ctx,m_str,cn());
+  /* 10:    "h":10, "m":33 */
+  tok(ctx,"   \"h\"",cs()); tok(ctx,":",co()); tok(ctx,h_str,cn());
+  tok(ctx," \"m\"",cs()); tok(ctx,":",co()); tok(ctx,m_str,cn());
   nl(ctx);
 
-  /* 11:     "p":"AM" } */
-  tok(ctx,"    \"p\"",cs()); tok(ctx,":",co()); tok(ctx,per,cs());
-  tok(ctx," }",co());
+  /* 11:    "p":"AM" } */
+  tok(ctx,"   \"p\"",cs()); tok(ctx,":",co());
+  tok(ctx,per,cs()); tok(ctx," }",co());
 
   /* ── result bar ── */
-  int result_y = s_cy + LH + 3;
-  /* divider line */
-  graphics_context_set_stroke_color(ctx,
-    s_mode==MODE_DARK ? GColorDarkGray : GColorLightGray);
-  graphics_draw_line(ctx, GPoint(0, result_y), GPoint(144, result_y));
+  int result_y = s_cy + LH + 2;
 
-  /* result background */
   graphics_context_set_fill_color(ctx,
     s_mode==MODE_DARK ? GColorOxfordBlue : GColorLightGray);
-  graphics_fill_rect(ctx, GRect(0, result_y+1, 144, 16), 0, GCornerNone);
+  graphics_fill_rect(ctx, GRect(0, result_y, 144, 22), 0, GCornerNone);
 
-  /* result text — the "output" of the code */
+  /* >> prompt */
+  graphics_context_set_text_color(ctx, cn());
+  graphics_draw_text(ctx, ">>", s_font_code,
+    GRect(3, result_y+3, 18, 16),
+    GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
+
+  /* result value */
   graphics_context_set_text_color(ctx,
     s_mode==MODE_DARK ? GColorWhite : GColorBlack);
   graphics_draw_text(ctx, s_result_buf, s_font_result,
-    GRect(4, result_y+1, 140, 16),
+    GRect(22, result_y+2, 120, 18),
     GTextOverflowModeWordWrap, GTextAlignmentLeft, NULL);
 }
 
@@ -174,13 +163,12 @@ static void update_time(struct tm *t) {
   s_is_am = s_hour < 12;
   strftime(s_day_buf, sizeof(s_day_buf), "%A", t);
 
-  /* result: "10:33 AM · Mon 17" */
-  char time_part[10], date_part[10];
+  char time_part[8], date_part[10];
   strftime(time_part, sizeof(time_part),
            clock_is_24h_style() ? "%H:%M" : "%I:%M", t);
   strftime(date_part, sizeof(date_part), "%a %d", t);
-  snprintf(s_result_buf, sizeof(s_result_buf), "%s %s  %s",
-           time_part, s_is_am ? "AM" : "PM", date_part);
+  snprintf(s_result_buf, sizeof(s_result_buf), "%s %s %s",
+           time_part, s_is_am?"AM":"PM", date_part);
 
   layer_mark_dirty(s_canvas);
 }
@@ -201,21 +189,21 @@ static void inbox_received(DictionaryIterator *iter, void *ctx) {
 static void window_load(Window *window) {
   Layer *root = window_get_root_layer(window);
   GRect  bounds = layer_get_bounds(root);
-  s_font_code   = fonts_load_custom_font(
-    resource_get_handle(RESOURCE_ID_FONT_CODE_12));
-  s_font_result = fonts_load_custom_font(
-    resource_get_handle(RESOURCE_ID_FONT_CODE_14));
+
+  /* system fonts — no custom font needed */
+  s_font_code   = fonts_get_system_font(FONT_KEY_GOTHIC_14);
+  s_font_result = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
+
   s_canvas = layer_create(bounds);
   layer_set_update_proc(s_canvas, canvas_draw);
   layer_add_child(root, s_canvas);
+
   time_t now = time(NULL);
   update_time(localtime(&now));
 }
 
 static void window_unload(Window *window) {
   layer_destroy(s_canvas);
-  fonts_unload_custom_font(s_font_code);
-  fonts_unload_custom_font(s_font_result);
 }
 
 static void init(void) {

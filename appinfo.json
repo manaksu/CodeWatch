@@ -15,18 +15,7 @@
     "KEY_MODE": 0
   },
   "resources": {
-    "media": [
-      {
-        "type": "font",
-        "name": "FONT_CODE_12",
-        "file": "fonts/SpecialElite-Regular.ttf"
-      },
-      {
-        "type": "font",
-        "name": "FONT_CODE_14",
-        "file": "fonts/SpecialElite-Regular.ttf"
-      }
-    ]
+    "media": []
   },
   "capabilities": [
     "configurable"
