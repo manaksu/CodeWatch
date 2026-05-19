@@ -32,4 +32,4 @@ Add the font **twice** in Resources:
 > Time as code. The watch displays the current time as a Python function — syntax-highlighted in VS Code colours, with JetBrains Mono font. Every minute, the code updates. Read the return value to tell the time. Dark mode and light mode available. *For those who think in functions.*
 
 ## Credits
-Built by manaksu. JetBrains Mono font by JetBrains (SIL Open Font License).
+Built by manaksu. JetBrains Mono font by JetBrains (SIL Open Font License) Free.
