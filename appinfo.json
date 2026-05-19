@@ -1,0 +1,21 @@
+{
+  "uuid": "c3d4e5f6-a7b8-9012-cdef-123456789003",
+  "shortName": "CodeWatch",
+  "longName": "Code Watch",
+  "companyName": "manaksu",
+  "versionLabel": "1.0",
+  "sdkVersion": "3",
+  "targetPlatforms": ["basalt"],
+  "watchapp": { "watchface": true },
+  "appKeys": {
+    "KEY_MODE": 0
+  },
+  "resources": {
+    "media": [
+      { "type": "font", "name": "FONT_CODE_10", "file": "fonts/SpecialElite-Regular.ttf" }
+    ]
+  },
+  "capabilities": ["configurable"],
+  "projectType": "native",
+  "messageKeys": {}
+}
