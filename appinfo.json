@@ -20,11 +20,6 @@
         "type": "font",
         "name": "FONT_SCP_12",
         "file": "fonts/SourceCodePro-Regular.ttf"
-      },
-      {
-        "type": "font",
-        "name": "FONT_SCP_14",
-        "file": "fonts/SourceCodePro-Regular.ttf"
       }
     ]
   },
